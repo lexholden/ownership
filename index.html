@@ -1,0 +1,26 @@
+<html>
+	<head>
+		<script type="text/javascript" src="./bower_components/jquery/dist/jquery.min.js"></script>
+		<script type="text/javascript" src="./bower_components/angular/angular.min.js"></script>
+		<script type="text/javascript" src="./bower_components/d3/d3.min.js"></script>
+		<script type="text/javascript">
+
+			var table;
+			var google = { visualization: {Query:{setResponse: function(d) {table = d; console.log(table.table); return d;}}} }
+
+			angular.module('D3App', [])
+				.controller('D3Controller', function($rootScope, $scope, $http) {
+					$http.jsonp('https://spreadsheets.google.com/tq?&tq=&key=1Ercu-WQVWnpfs3wKe3SQ9BhzW2ROr2mrACjYhdjNA9o&gid=2').then(function(d) {  
+						$scope.table = table;
+						console.log(table);
+					});
+				})
+		</script>
+		<title>Google Sheets Experiment</title>
+	</head>
+	<body ng-app="D3App">
+		<div ng-controller="D3Controller">
+			{{table.version}}
+		</div>
+	</body>
+</html>
