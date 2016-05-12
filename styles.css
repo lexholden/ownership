@@ -1,0 +1,63 @@
+
+body {
+    margin: 0;
+    height: 100%;
+    width: 100%;
+    position: absolute;
+}
+
+.node {
+  cursor: pointer;
+  // stroke-width: 1.5px;
+
+  circle{
+    // stroke: #34495e;
+    // stroke-width: 2px;
+    box-sizing: border-box;
+    stroke-location: inside;
+  }
+
+
+}
+
+text {
+  transition: all 0.2s linear;
+  fill: #000;
+  font-weight: lighter;
+  font-family: arial;
+  font-size: 11px;
+  stroke: #FFF 2px;
+}
+
+line.link {
+  fill: none;
+  stroke: #CCC;
+  stroke-width: 1px;
+}
+
+.bar {
+  position: fixed;
+  left: 0;
+  top: 0;
+  right: 0;
+  height: 40px;
+  width: auto;
+  box-shadow: 0px 3px 5px -2px #CCC;
+  background: #FFF;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+// .tagspace {
+//   width: 
+// }
+
+.tag {
+  padding: 5px;
+  margin: 4px;
+  float: left;
+  border-radius: 5px;
+  // text-transform: uppercase;
+  color: #FFF;
+  background: #BBB;
+}

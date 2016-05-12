@@ -1,26 +1,266 @@
-<html>
+<html ng-app="D3App">
 	<head>
 		<script type="text/javascript" src="./bower_components/jquery/dist/jquery.min.js"></script>
 		<script type="text/javascript" src="./bower_components/angular/angular.min.js"></script>
 		<script type="text/javascript" src="./bower_components/d3/d3.min.js"></script>
+		<script type="text/javascript" src="./node_modules/lodash/lodash.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="./styles.css" />
 		<script type="text/javascript">
 
-			var table;
-			var google = { visualization: {Query:{setResponse: function(d) {table = d; console.log(table.table); return d;}}} }
+			let table;
+			var google = { visualization: {Query:{setResponse: function(d) {table = d; return d;}}} }
 
 			angular.module('D3App', [])
 				.controller('D3Controller', function($rootScope, $scope, $http) {
-					$http.jsonp('https://spreadsheets.google.com/tq?&tq=&key=1Ercu-WQVWnpfs3wKe3SQ9BhzW2ROr2mrACjYhdjNA9o&gid=2').then(function(d) {  
-						$scope.table = table;
+
+          // $scope.graphs = d3.range(5).map(function(i){
+          //     return d3.range(10).map(function() {
+          //         return {
+          //             id: ~~(Math.random() * 3),
+          //             index: i,
+          //             size: ~~(Math.random() * (12 - 4) + 4),
+          //             party: ~~(Math.random() * 2)
+          //         }
+          //     })
+          // })
+
+          $scope.data = {nodes: [], links: [], lookup: {}, categories: [] };
+
+
+          function renderGraph() {
+
+            var width = $('body').width(), height = $('body').height();
+            var force = d3.layout.force()
+              .nodes($scope.data.nodes)
+              .links($scope.data.links)
+              .size([width, height])
+              .charge(function(d) { var charge = -1000 - (d.revenue ? d.revenue.v.toString().length * 400 : 0); /*console.log(d.name + ': ' + charge);*/ return charge; })
+              .linkDistance(function(d) { return (5 + (d.source.subsidiaries.length) + ( d.target.subsidiaries.length) + (d.source.nodeSize) + (d.target.nodeSize)); })
+              .on("tick", tick);
+
+            var svg = d3.select("body").append("svg")
+              .attr("width", width)
+              .attr("height", height)
+              .call(zoom = d3.behavior.zoom().scaleExtent([0.2, 10]).on("zoom", redrawCanvas));
+
+            var defs = svg.append('svg:defs');
+
+            // defs.append()
+
+            // defs.append('svg:pattern')
+            //     .attr('id', 'tile-ww')
+            //     .attr('patternUnits', 'userSpaceOnUse')
+            //     .attr('width', '6')
+            //     .attr('height', '6')
+            //     .append('svg:image')
+            //     .attr('href', 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAASABIAAD/4QEURXhpZgAATU0AKgAAAAgACAEGAAMAAAABAAIAAAESAAMAAAABAAEAAAEaAAUAAAABAAAAbgEbAAUAAAABAAAAdgEoAAMAAAABAAIAAAExAAIAAAAkAAAAfgEyAAIAAAAUAAAAoodpAAQAAAABAAAAtgAAAAAAAABIAAAAAQAAAEgAAAABQWRvYmUgUGhvdG9zaG9wIENDIDIwMTQgKE1hY2ludG9zaCkAMjAxNDoxMjowOCAwMjozNjozMAAABZAAAAcAAAAEMDIyMZAEAAIAAAAUAAAA+KABAAMAAAABAAEAAKACAAQAAAABAAAARqADAAQAAAABAAAARgAAAAAyMDE0OjA3OjE3IDE5OjI3OjQ2AP/hDjFodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IlhNUCBDb3JlIDUuNC4wIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIiB4bWxuczpwaG90b3Nob3A9Imh0dHA6Ly9ucy5hZG9iZS5jb20vcGhvdG9zaG9wLzEuMC8iIHhtbG5zOnhtcE1NPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvbW0vIiB4bWxuczpzdEV2dD0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL3NUeXBlL1Jlc291cmNlRXZlbnQjIiB4bWxuczpkYz0iaHR0cDovL3B1cmwub3JnL2RjL2VsZW1lbnRzLzEuMS8iIHhtcDpNb2RpZnlEYXRlPSIyMDE0LTEyLTA4VDAyOjM2OjMwWiIgeG1wOkNyZWF0ZURhdGU9IjIwMTQtMDctMTdUMTk6Mjc6NDYrMDE6MDAiIHhtcDpNZXRhZGF0YURhdGU9IjIwMTQtMTItMDhUMDI6MzY6MzBaIiB4bXA6Q3JlYXRvclRvb2w9IkFkb2JlIFBob3Rvc2hvcCBDQyAyMDE0IChNYWNpbnRvc2gpIiBwaG90b3Nob3A6VHJhbnNtaXNzaW9uUmVmZXJlbmNlPSJKN2ZZZ2Y5bHVaNzBOaUlQRGtWRyIgcGhvdG9zaG9wOkxlZ2FjeUlQVENEaWdlc3Q9IkNFREEyNDdFNDlGMTZFQ0M2RTY3NkVENzlCMDI3RDc2IiBwaG90b3Nob3A6SUNDUHJvZmlsZT0iYzIiIHBob3Rvc2hvcDpDb2xvck1vZGU9IjMiIHhtcE1NOkluc3RhbmNlSUQ9InhtcC5paWQ6OGE5YTAwNGUtYWVmMC00NDk3LTgyNzctOWVlOWE3NjQ4YjM5IiB4bXBNTTpEb2N1bWVudElEPSJhZG9iZTpkb2NpZDpwaG90b3Nob3A6NjczM2ZmN2UtYmYxMS0xMTc3LWE5OWQtZDE5MTA1NmM2MTg3IiB4bXBNTTpPcmlnaW5hbERvY3VtZW50SUQ9IjE4N0VBRUY0OEYyOUVCOUMzQTI4OTVCRjk1NjE0RTBDIiBkYzpmb3JtYXQ9ImltYWdlL2pwZWciPiA8eG1wTU06SGlzdG9yeT4gPHJkZjpTZXE+IDxyZGY6bGkgc3RFdnQ6c29mdHdhcmVBZ2VudD0iQWRvYmUgUGhvdG9zaG9wIENDIDIwMTQgKE1hY2ludG9zaCkiIHN0RXZ0OmNoYW5nZWQ9Ii8iIHN0RXZ0OndoZW49IjIwMTQtMTItMDhUMDI6MzY6MzBaIiBzdEV2dDppbnN0YW5jZUlEPSJ4bXAuaWlkOjI0NzBhY2Q1LTUxMzAtNGE2Ny05YjhlLTYwMzAzOWNmZDAzZiIgc3RFdnQ6YWN0aW9uPSJzYXZlZCIvPiA8cmRmOmxpIHN0RXZ0OnNvZnR3YXJlQWdlbnQ9IkFkb2JlIFBob3Rvc2hvcCBDQyAyMDE0IChNYWNpbnRvc2gpIiBzdEV2dDpjaGFuZ2VkPSIvIiBzdEV2dDp3aGVuPSIyMDE0LTEyLTA4VDAyOjM2OjMwWiIgc3RFdnQ6aW5zdGFuY2VJRD0ieG1wLmlpZDo4YTlhMDA0ZS1hZWYwLTQ0OTctODI3Ny05ZWU5YTc2NDhiMzkiIHN0RXZ0OmFjdGlvbj0ic2F2ZWQiLz4gPC9yZGY6U2VxPiA8L3htcE1NOkhpc3Rvcnk+IDwvcmRmOkRlc2NyaXB0aW9uPiA8L3JkZjpSREY+IDwveDp4bXBtZXRhPiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDw/eHBhY2tldCBlbmQ9InciPz4A/+0AflBob3Rvc2hvcCAzLjAAOEJJTQQEAAAAAABFHAFaAAMbJUccAgAAAgACHAI+AAgyMDE0MDcxNxwCZwAUSjdmWWdmOWx1WjcwTmlJUERrVkccAj8ACzE5Mjc0NiswMTAwADhCSU0EJQAAAAAAEMMX4nvHSep7NzYjg6F2NaH/4gIcSUNDX1BST0ZJTEUAAQEAAAIMbGNtcwIQAABtbnRyUkdCIFhZWiAH3AABABkAAwApADlhY3NwQVBQTAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA9tYAAQAAAADTLWxjbXMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAApkZXNjAAAA/AAAAF5jcHJ0AAABXAAAAAt3dHB0AAABaAAAABRia3B0AAABfAAAABRyWFlaAAABkAAAABRnWFlaAAABpAAAABRiWFlaAAABuAAAABRyVFJDAAABzAAAAEBnVFJDAAABzAAAAEBiVFJDAAABzAAAAEBkZXNjAAAAAAAAAANjMgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAB0ZXh0AAAAAEZCAABYWVogAAAAAAAA9tYAAQAAAADTLVhZWiAAAAAAAAADFgAAAzMAAAKkWFlaIAAAAAAAAG+iAAA49QAAA5BY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')
+            //     .attr('x', 0)
+            //     .attr('y', 0)
+            //     .attr('width', 6)
+            //     .attr('height', 6);
+
+            var innervis = svg.append('g');
+
+            var links = innervis.selectAll(".link").data($scope.data.links);
+                nodes = innervis.selectAll(".node").data($scope.data.nodes);
+
+            links.enter()
+              .append("line")
+                .attr("class", "link")
+                .attr('stroke-linecap','round');
+
+            nodeG = nodes.enter().append('g')
+              .attr('class', 'node')
+              .call(force.drag)
+              .on("mouseover", function(d) { if (d.img64) { var nodeSelection = d3.select(this); nodeSelection.select('text').style({opacity: 1})} })
+              .on("mouseout", function(d) { if (d.img64) { var nodeSelection = d3.select(this); nodeSelection.select('text').style({opacity: 0}) } });
+
+            nodeG.append('circle')
+              .attr('r', function(d) { return d.img64 ? 0 : d.nodeRadius })
+              // .attr('fill', 'url(/#tile-ww)')
+              .on('dblclick', dblclick)
+
+            nodeG.append('image')
+              .attr('href', function(d) {return d.img64})
+              .attr("x", function(d) { return -d.nodeSize })
+              .attr("y", function(d) { return -d.nodeSize })
+              .attr("height", function(d) { return d.nodeSize * 2 })
+              .attr("width", function(d) { return d.nodeSize * 2 })
+
+            nodeG.append('text')
+              .text(function(d) { return d.name })
+              // .attr('style', function(d) { console.log(d); return 'opacity: ' + d.img64 ? 0 : 1 })
+              .style('opacity', function(d) { return d.img64 ? 0 : 1 })
+              .attr("text-anchor", "middle")
+              .attr("dy", function(d) { return d.nodeRadius + 35 })
+              .attr('class', 'node-text')
+              .attr('fill', '#CCC');
+              // .attr('visibility', function(d) { return d.img64 ? (d.hover ? 'visible' : 'hidden') : 'visible' });
+
+            // var drag = force.drag()
+            //   .on("dragstart", dragstart);
+
+            force.start();
+
+            function tick() {
+              links.attr("x1", function(d) { return d.source.x; })
+                  .attr("y1", function(d) { return d.source.y; })
+                  .attr("x2", function(d) { return d.target.x; })
+                  .attr("y2", function(d) { return d.target.y; });
+
+              nodes.attr("transform", function(d) { return 'translate(' + d.x + ',' + d.y + ') scale(' + 1 + ')' })
+                // .attr('cx', function(d) {return d.x; })
+                // .attr("cy", function(d) { return d.y; });
+            }
+
+            function dblclick(d) {
+              d3.select(this).classed("fixed", d.fixed = false);
+            }
+
+            function dragstart(d) {
+              d3.select(this).classed("fixed", d.fixed = true);
+            }
+
+            function redrawCanvas() {
+              innervis.attr("transform", "translate(" + d3.event.translate + ")" + " scale(" + d3.event.scale + ")");
+            }
+
+
+          }
+
+
+					$http.jsonp('https://spreadsheets.google.com/tq?&tq=&key=1Ercu-WQVWnpfs3wKe3SQ9BhzW2ROr2mrACjYhdjNA9o&gid=2')
+          .success(function(d) { 
+            // console.log(d);
+					}).error(function (e) {
+            // console.log(e);
+						$scope.table = table.table;
 						console.log(table);
+
+						$scope.table.rows.forEach(function(r, ri) {
+              var row = {}
+              // console.log(r);
+
+              r.c.forEach(function(x, xi) {
+                if (x !== null && x.v !== null && x.v.length !== 0) {
+                  // row[$scope.table.columns[]]
+                  // console.log($scope.table.cols[xi].label.toLowerCase() + ' is ' + x.v);
+                  row[$scope.table.cols[xi].label.toLowerCase()] = x;
+                }
+                // if (x )
+              })
+
+              // if (r)
+
+              // $scope.table.columns.forEach(function(c, ci) {
+
+              // })
+
+							
+							// $scope.graph.push({id: ~~(Math.random() * 3), row: ri, name: r.c[1].v, index: ri, size: 5, party: 1, x: 0, y: 0})
+
+							// r.c.forEach(function(c, ci) {
+							// 	row += c ? c.v : '_';
+							// 	row += '	'
+							// });
+
+
+              // row.x = 10;
+              // row.y = 10;
+
+              if (row.name) {
+                row.id = ri;
+                row.name = row.name.v
+                if (row.bio) { row.bio = row.bio.v }
+                if (row.country) { row.country.m = row.country.v.split(' > '); }
+                if (row.parent) { row.parent = row.parent.v } // TODO We need to check the parent exists
+                if (row.ceo) { row.ceo = row.ceo.v }
+                if (row.imgurl) {row.imgurl = row.imgurl.v}
+                if (row.img64) {row.img64 = row.img64.v}
+                if (row.category) { 
+                  row.category.b = row.category.v.split(' > ');
+                  var catString = '';
+                  var currentCat;
+                  row.category.b.forEach(function(c, i, a) {
+                    if (i > 0) { catString += ' > ' }
+                    catString += c;
+                    // console.log(catString);
+                    // console.log('checking if ' + currentCat + ' is already a category')
+                    var matchingCats = $scope.data.categories.filter(function(d) { return catString === d.path });
+                    if (matchingCats.length) {
+                      // console.log('we have this cat already, length is ' + matchingCats.length);
+                      matchingCats[0].values.push(row);
+                    } else {
+                      $scope.data.categories.push( {name: c, path: catString, values: [row], root: i === 0 ? true : false} )
+                      // console.log('we do not have this cat, adding it ' + catString + '. Length is now ' + $scope.data.categories.length);
+                    }
+                    
+                  })
+                }
+
+                row.subsidiaries = [];
+                row.nodeRadius = (row.revenue ? row.revenue.v.toString().length * 4 : 4) + 4;
+                row.nodeSize = row.nodeRadius * 4
+
+                // console.log(row);
+                $scope.data.lookup[row.name] = row;
+                $scope.data.nodes.push(row);
+              }
+
+							// table.columns.forEach(function(c, Ci) {
+							// 	row += 
+							// })
+						})
+
+            $scope.data.nodes.forEach(function(n, i) {
+              if (n.parent) {
+                n.parent = n.parent.split('\n');
+                n.parent.forEach(function(p, pi) {
+                  var breakdown = p.split(':')
+                  if (breakdown.length > 1) { console.log('This parent comes with an amount: ' + breakdown); }
+                  p = breakdown[0];
+                  // console.log(p);
+                  if ($scope.data.lookup[p] === undefined) {
+                    console.log('WARNING: "' + p + '" (parent of ' + n.name + ') does not exist.');
+                  } else {
+                    $scope.data.lookup[p].subsidiaries.push(n);
+                    $scope.data.links.push({source: $scope.data.lookup[p].id, target: n.id, percentage: breakdown[1] });
+                  }
+
+                })
+                
+                // console.log(n.name + ' is a subsidiary of ' + n.parent);
+
+              }
+            })
+
+            $scope.data.catLookup = {};
+            $scope.data.categories.forEach(function(c, i) {
+              $scope.data.catLookup[c.path] = c;
+            })
+
+            $scope.data.nodes.forEach(function(n, i) {
+              if (!n.subsidiaries.length && !n.parent) {
+                console.log(n.name + ' has no connections');
+              }
+            })
+
+            console.log($scope.data);
+            renderGraph();
+
 					});
+
 				})
+
+
 		</script>
 		<title>Google Sheets Experiment</title>
 	</head>
-	<body ng-app="D3App">
-		<div ng-controller="D3Controller">
-			{{table.version}}
-		</div>
-	</body>
+	<body ng-controller="D3Controller">
+    <div class="bar">
+      <!-- <div class="tagspace"> -->
+        <span class="tag" ng-repeat="cat in data.categories | orderBy:'name' | filter: {root: true} ">{{cat.path}}</span>
+      <!-- </div> -->
+    </div>
+  </body>
 </html>
