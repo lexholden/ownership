@@ -92,7 +92,7 @@
               // .attr('style', function(d) { console.log(d); return 'opacity: ' + d.img64 ? 0 : 1 })
               .style('opacity', function(d) { return d.img64 ? 0 : 1 })
               .attr("text-anchor", "middle")
-              .attr("dy", function(d) { return d.nodeRadius + 35 })
+              .attr("dy", function(d) { return d.nodeRadius + 25 })
               .attr('class', 'node-text')
               .attr('fill', '#CCC');
               // .attr('visibility', function(d) { return d.img64 ? (d.hover ? 'visible' : 'hidden') : 'visible' });
@@ -136,6 +136,7 @@
             // console.log(e);
 						$scope.table = table.table;
 						console.log(table);
+            console.log(JSON.stringify(table).length)
 
 						$scope.table.rows.forEach(function(r, ri) {
               var row = {}
