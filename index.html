@@ -7,7 +7,7 @@
     <link rel="stylesheet" type="text/css" href="./styles.css" />
 		<script type="text/javascript">
 
-			let table;
+			var table;
 			var google = { visualization: {Query:{setResponse: function(d) {table = d; return d;}}} }
 
 			angular.module('D3App', [])
@@ -240,11 +240,14 @@
               $scope.data.catLookup[c.path] = c;
             })
 
+            var unconnected = 0;
             $scope.data.nodes.forEach(function(n, i) {
               if (!n.subsidiaries.length && !n.parent) {
+                unconnected++;
                 console.log(n.name + ' has no connections');
               }
             })
+            console.log('INFO: There are ' + unconnected + ' unconnected nodes');
 
             console.log($scope.data);
             renderGraph();
