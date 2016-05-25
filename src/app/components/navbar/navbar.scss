@@ -1,0 +1,109 @@
+.acme-navbar-text{
+  color: white;
+}
+
+a {
+  color: black;
+}
+
+h1 {
+  font-size: 2em;
+  margin: 0;
+  line-height: 1em;
+}
+
+a:hover, a:focus {
+  color: greenyellow;
+}
+
+md-toolbar {
+  min-height: 30px;
+  height: 34px;
+}
+
+.md-button {
+  margin: 0px 0px;
+  border-radius: 0;
+  padding: 0 10px;
+  min-width: 50px;
+}
+
+a.md-button.md-raised {
+  background: transparent;
+  color: #FFF;
+  &:hover, :active, :focus {
+    color: #000;
+  }
+}
+
+.search {
+  margin: 0px 5px;
+}
+
+.filter {
+  width: 100%;
+  margin: 0;
+  padding: 10px;
+  border: 0;
+  outline: none;
+}
+
+/* Dropdown Button */
+.dropbtn {
+    background-color: #4CAF50;
+    color: white;
+    padding: 16px;
+    font-size: 16px;
+    border: none;
+    cursor: pointer;
+}
+
+/* The container <div> - needed to position the dropdown content */
+.dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+/* Dropdown Content (Hidden by Default) */
+.dropdown-content {
+  margin-top: -5px;
+  color: black;
+  display: none;
+  position: absolute;
+  background-color: #f9f9f9;
+  min-width: 160px;
+  font-size: 12px;
+  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+  p {
+    padding: 10px;
+  }
+  .active {
+    background: #DEF !important;
+  }
+}
+
+.dropdown-list {
+  overflow-y: auto;
+  max-height: 500px;
+}
+
+/* Links inside the dropdown */
+.dropdown-content a {
+    color: black;
+    padding: 6px 16px;
+    text-decoration: none;
+    display: block;
+}
+
+/* Change color of dropdown links on hover */
+.dropdown-content a:hover {background-color: #f1f1f1}
+
+/* Show the dropdown menu on hover */
+.dropdown:hover .dropdown-content {
+    display: block;
+}
+
+/* Change the background color of the dropdown button when the dropdown content is shown */
+.dropdown:hover .dropbtn {
+    background-color: #3e8e41;
+}

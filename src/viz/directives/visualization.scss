@@ -1,0 +1,91 @@
+.graph {
+  font: 10px sans-serif;
+  svg {
+    display: inline-block;
+  }
+}
+
+.axis path,
+.axis line {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
+}
+
+.node {
+  cursor: pointer;
+  // stroke-width: 1.5px;
+
+  circle{
+    // stroke: #34495e;
+    // stroke-width: 2px;
+    box-sizing: border-box;
+    stroke-location: inside;
+  }
+}
+
+text {
+  transition: all 0.2s linear;
+  fill: #999;
+  font-weight: lighter;
+  font-family: arial;
+  font-size: 11px;
+  stroke: #FFF 2px;
+}
+
+line.link {
+  fill: none;
+  stroke: #CCC;
+  stroke-width: 1px;
+}
+
+.x.axis path {
+  display: none;
+}
+
+.line {
+  fill: none;
+  stroke: steelblue;
+  stroke-width: 1px;
+}
+
+.overlay {
+  fill: none;
+  pointer-events: all;
+}
+
+.pointer {
+  fill: none;
+  stroke: steelblue;
+  stroke-width: 2px;
+}
+
+.logviewer {
+  float: right;
+  max-width: 600px;
+  width: 50%;
+  min-width: 300px;
+  height: 480px;
+  max-height: 480px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  margin: 10px;
+  background: #EDEDED;
+  // float: left;
+  display: inline-block;
+}
+
+.log {
+  clear: both;
+  margin-bottom: 4px;
+  width: 100%;
+}
+
+visualization {
+  display: inline-block;
+  height: 100%;
+  width: 100%;
+  // min-height: 800px !important;
+  // height: 800px;
+  // background: crimson;
+}

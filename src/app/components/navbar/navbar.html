@@ -1,0 +1,44 @@
+<md-toolbar layout="row" layout-align="center center">
+
+    <div class="dropdown">
+        <md-button ng-href="/"><b>?</b></md-button>
+        <div class="dropdown-content">
+            <p>This will become some help text.</p>
+        </div>
+    </div>
+
+    <div class="dropdown">
+        <md-button ng-href="/">Viz</md-button>
+        <div class="dropdown-content" style="min-width: 400px;">
+            <a ng-repeat="v in viz" ng-click="render(v)" ng-class="{active: v.active}">{{v.key}}</a>
+        </div>
+    </div>
+
+    <section flex layout="row" layout-align="center">
+
+      <div class="dropdown" ng-if="roots">
+          <md-button ng-href="/" ng-mouseover="highlight(this)">Roots</md-button>
+          <div class="dropdown-content" style="min-width: 400px;">
+              <input class="filter" ng-model="filter" type="text" placeholder="Filter Roots">
+              <div class="dropdown-list">
+                <a href="#" ng-repeat="r in roots | filter:filter | orderBy:r.name ">{{r.name}}</a>
+              </div>
+          </div>
+      </div>
+
+      <div class="dropdown" ng-repeat=" m in d | orderBy:'property' ">
+          <md-button ng-href="/" ng-mouseover="highlight(this)">{{m.property}}</md-button>
+          <div class="dropdown-content">
+              <input class="filter" ng-model="filterout" type="text" placeholder="Filter {{m.property}}">
+              <div class="dropdown-list">
+                <a href="#" ng-repeat="f in m.lookup._list | filter:filterout | orderBy:f ">{{f}}</a>
+              </div>
+          </div>
+      </div>
+
+        <!-- <md-button ng-href="/components" class="md-raised">Components</md-button> -->
+    </section>
+
+    <input class="search" ng-model="user.name" type="text">
+
+</md-toolbar>
