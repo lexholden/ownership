@@ -39,12 +39,14 @@ export class DataService {
 
   structureData(data) {
     console.log(data);
+    console.info(JSON.stringify(data).length);
     var d = {nodes: [], links: [], lookup: {}, filterKeys: [], roots: [] };
     var currencies = { '$': 'USD', '£': 'GBP', '€': 'Euro', 'CAD': 'CAD', 'CHF': 'Swiss Franc' };
     var ckeys = Object.keys(currencies);
     d.length = angular.toJson(data).length;
     // console.log(d);
 
+    // console.groupCollapsed('Validating Properties');
     data.table.rows.forEach((r, ri) => {
       var row = {};
       // console.log(r);
@@ -57,12 +59,15 @@ export class DataService {
 
       if (row.name) {
         row.id = ri;
+        // console.groupCollapsed(row.name.v);
 
         // Parse single value parameters
         ['name', 'bio', 'img64', 'imgurl', 'parent', 'wiki'].forEach((v, vi) => {
           if (row[v]) {
             // console.log(row.name + ' has property ' + v + ' so parsing the value ' + row[v].v);
             row[v] = row[v].v;
+          } else if (v === 'img64') {
+            // console.warn(row.name + ' has no base64 image');
           }
         });
 
@@ -100,7 +105,7 @@ export class DataService {
               n++;
             }
             if (angular.isUndefined(row[v].currencySymbol)) {
-              console.error('ERROR: A currency does not exist: ' + row[v].f);
+              console.error('A currency does not exist: ' + row[v].f);
             }
             // row[v].currencySymbol = row[v].f[0];
             // if (currencies[row[v].currencySymbol]) {
@@ -116,13 +121,16 @@ export class DataService {
         row.nodeSize = row.nodeRadius * 4;
 
         if (angular.isDefined(d.lookup[row.name])) {
-          console.error('ERROR: "' + row.name + '" exists twice!'); // TODO What if it exists more than twice?
+          console.error('"' + row.name + '" exists twice!'); // TODO What if it exists more than twice?
         }
 
         d.lookup[row.name] = row;
         d.nodes.push(row);
+
+        // console.groupEnd();
       }
     });
+    console.groupEnd();
 
     d.nodes.forEach((n, i) => {
       // console.log('checking parents ' + n.name);
@@ -138,7 +146,7 @@ export class DataService {
           p = breakdown[0];
           if (angular.isUndefined(d.lookup[p])) {
             // TODO Can we string score to suggest likely comparisons https://github.com/joshaven/string_score
-            console.error('ERROR: "' + p + '" (parent of ' + n.name + ') does not exist.');
+            console.error('"' + p + '" (parent of ' + n.name + ') does not exist.');
           } else {
             d.lookup[p].subsidiaries.push(n);
             d.links.push({source: d.lookup[p].id, target: n.id, type: 'ownership', percentage: (breakdown[1] || 100) });
@@ -151,14 +159,14 @@ export class DataService {
     d.nodes.forEach(n => {
       if (!n.subsidiaries.length && !n.parent) {
         unconnected++;
-        console.log('WARNING: ' + n.name + ' has no connections');
+        console.warn('"' + n.name + '" has no connections');
       } else if (!n.parent) {
         // console.log('INFO: ' + n.name + ' looks like a top root with children')
         d.roots.push(n);
       }
     });
 
-    console.log('INFO: There are ' + unconnected + ' unconnected nodes');
+    console.info('There are ' + unconnected + ' unconnected nodes');
     return d;
 
         // Row: The row to lookup, v: The key
@@ -185,7 +193,7 @@ export class DataService {
         }
 
       } else {
-        console.error('ERROR: We have an unrecognised category value');
+        console.error('We have an unrecognised category value');
         category = 'Uncategorized';
       }
 

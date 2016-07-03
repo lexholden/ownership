@@ -27,7 +27,7 @@ export function Force(element, config, d, viz) {
       })
       .linkDistance(d => {
         return (5 + (d.source.subsidiaries.length) + (d.target.subsidiaries.length)
-          + (d.source.nodeSize) + (d.target.nodeSize));
+          + (d.source.nodeSize * 1.5) + (d.target.nodeSize));
       })
       .on('tick', tick);
 
